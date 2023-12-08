@@ -258,5 +258,11 @@ class Kandinsky:
         # 선택된 페이스들에 대해 추출 실행
         extrude = cmds.polyExtrudeFacet(faces, inputCurve=curve, divisions=50, ltz=0.5)
 
+        # cylinder의 히스토리, constraint, locator, curve 삭제
+        cmds.delete(cylinder, constructionHistory=True)
+        cmds.delete(aim_constraint)
+        cmds.delete(locator)
+        cmds.delete(curve)
+
 # Circle 객체 생성
 r = Kandinsky()
