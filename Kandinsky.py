@@ -30,6 +30,11 @@ LINE_LEN_MIN, LINE_LEN_MAX = 5,10
 # Cylinder Radius
 CYLINDER_RADIUS=0.15
 
+# SemiCircular
+SEMI_CIRCULAR_NAME = 'SemiCircular'
+SEMI_CIRCULAR_RADIUS = 0.5
+SEMI_CIRCULAR_HEIGHT = 1.0
+
 class CircleType(Enum):
     BIG = 0
     MIDDLE = 1
@@ -60,10 +65,14 @@ class Kandinsky:
         for i in range(num_groups):
             cylinder_group = self.createSector()
 
-        num_groups = random.randint(2, 3)
+        # 구불선 생성
+        num_groups = random.randint(2, 4)
 
         for i in range(num_groups):
             self.createCurve3D()
+
+        # 연속 반원 3개 생성
+        self.createSemiCircular()
     
     #
     # 원 생성
@@ -198,7 +207,7 @@ class Kandinsky:
     #
     def createCurve3D(self):
          
-        cylinder = cmds.polyCylinder(r=0.2, h=0.2, sx=20, sy=1, sz=1, ax=(0, 1, 0))[0]
+        cylinder = cmds.polyCylinder(r=0.2, h=0.1, sx=20, sy=1, sz=1, ax=(0, 1, 0))[0]
 
         x = random.uniform(X_MIN, X_MAX)
         y = random.uniform(Y_MIN, Y_MAX)
@@ -258,24 +267,43 @@ class Kandinsky:
         # 선택된 페이스들에 대해 추출 실행
         extrude = cmds.polyExtrudeFacet(faces, inputCurve=curve, divisions=50, ltz=0.5)
 
-        # cylinder의 히스토리, constraint, locator, curve 삭제
         cmds.delete(cylinder, constructionHistory=True)
         cmds.delete(aim_constraint)
         cmds.delete(locator)
         cmds.delete(curve)
 
-        reverse = random.randint(0,1)
-        degreeX = random.uniform(0, 60)
-        degreeY = random.uniform(0, 60)
-        degreeZ = random.uniform(0, 60)
+    #
+    # 연속된 반원 3개 생성
+    #
+    def createSemiCircular(self):
 
-        print('reverse:',reverse,' degreeX:',degreeX,' degreeY:',degreeY,'degreeZ',degreeZ)
+        group_name = cmds.group(empty=True, name=f'{SEMI_CIRCULAR_NAME}_group')
+
+        column_name = cmds.polyCylinder(name=SEMI_CIRCULAR_NAME, radius=SEMI_CIRCULAR_RADIUS, height=SEMI_CIRCULAR_HEIGHT, sx=20, sy=1, sz=1, axis=(0, 1, 0))[0]
+
+        cube_name = cmds.polyCube(name=f'{SEMI_CIRCULAR_NAME}_cube', width=SEMI_CIRCULAR_RADIUS * 8, height=SEMI_CIRCULAR_HEIGHT * 2, depth=SEMI_CIRCULAR_RADIUS * 2)[0]
+        cmds.move(0, 0, SEMI_CIRCULAR_RADIUS, cube_name)
+        cmds.scale(SEMI_CIRCULAR_RADIUS * 2.0 / SEMI_CIRCULAR_RADIUS, 1.0, 1.0, cube_name)
+
+        result_name = cmds.polyBoolOp(column_name, cube_name, operation=2, name=f'{SEMI_CIRCULAR_NAME}_result')[0]
         
-        if(reverse==1):
-            degreeY  = degreeY + 180
+        cmds.polyExtrudeFacet(result_name + '.f[0]', ltz=SEMI_CIRCULAR_HEIGHT/12)
+        cmds.scale(4, 1, 1, result_name + '.f[0]')
 
-        cmds.rotate(degreeX, degreeY, degreeZ, cylinder)
+        duplicates = []
+        for i in range(1, 4):
+            copy_name = cmds.duplicate(result_name, name=f'{SEMI_CIRCULAR_NAME}_{i}')[0]
+            cmds.move(i * (SEMI_CIRCULAR_RADIUS * 2), 0, 0, copy_name, absolute=True)
+            duplicates.append(copy_name)
 
+        combined_result = cmds.polyUnite([result_name] + duplicates, name=f'{SEMI_CIRCULAR_NAME}_combined')[0]
+
+        cmds.parent(combined_result, group_name)
+
+        x_position, y_position, z_position = (random.uniform(-15, 15),random.uniform(0, 30),random.uniform(-7.5, 7.5))
+        rotation_values = [random.uniform(0, 360) for _ in range(3)]
+        cmds.move(x_position, y_position, z_position, group_name)
+        cmds.rotate(*rotation_values, group_name)
 
 
 # Circle 객체 생성
