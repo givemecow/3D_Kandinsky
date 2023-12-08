@@ -150,57 +150,49 @@ class Kandinsky:
                 z = random.uniform(Z_MIN, Z_MAX)
     
     #
-    # 격자 생성 함수
+    # 부채꼴 생성 함수
     #
 
     def createSector(self):
-        self.group = cmds.group(em=True)
+        sectorGroup = cmds.group(em=True)
 
-        cylinder1 = self.create_cylinder()
-        cylinder2 = self.create_cylinder()
+        cylinder1 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=self.height)[0]
+        cmds.move(0, self.height / 2, 0, cylinder1 + ".scalePivot", cylinder1 + ".rotatePivot", absolute=True)
+        cylinder2 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=self.height)[0]
+        cmds.move(0, self.height / 2, 0, cylinder2 + ".scalePivot", cylinder2 + ".rotatePivot", absolute=True)
 
-        self.random_scale_y(cylinder1)
-        self.random_scale_y(cylinder2)
-
-        self.random_rotate(cylinder1)
-        self.random_rotate(cylinder2)
-
-        cmds.move(0, 0, 0, [cylinder2 + ".scalePivot", cylinder2 + ".rotatePivot"], absolute=True)
-        cmds.move(0, 0, 0, [cylinder2 + ".scalePivot", cylinder2 + ".rotatePivot"], absolute=True)
-
-        cmds.parent(cylinder1, cylinder2, self.group)
-
-        cmds.xform(self.group, pivots=[0, self.height/2, 0], worldSpace=True)
-
-        self.random_rotate(self.group)
-
-        self.random_position(self.group)
-
-        return self.group
-    
-    def create_cylinder(self):
-        cylinder = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=self.height)[0]
-        
-        cmds.move(0, self.height / 2, 0, cylinder + ".scalePivot", cylinder + ".rotatePivot", absolute=True)
-
-        return cylinder
-
-    def random_scale_y(self, cylinder):
         scale_y = random.uniform(5, 15)
-        cmds.scale(1, scale_y, 1, cylinder)
+        cmds.scale(1, scale_y, 1, cylinder1)
+        scale_y = random.uniform(5, 15)
+        cmds.scale(1, scale_y, 1, cylinder2)
 
-    def random_rotate(self, cylinder):
         angle_x = random.uniform(90, 180)
         angle_y = random.uniform(90, 180)
         angle_z = random.uniform(90, 180)
-        cmds.rotate(angle_x, angle_y, angle_z, cylinder, relative=True)
-        print('angle_x:',angle_x,' angle_y:',angle_y,' angle_z:',angle_z)
+        cmds.rotate(angle_x, angle_y, angle_z, cylinder1, relative=True)
+        angle_x = random.uniform(90, 180)
+        angle_y = random.uniform(90, 180)
+        angle_z = random.uniform(90, 180)
+        cmds.rotate(angle_x, angle_y, angle_z, cylinder2, relative=True)
 
-    def random_position(self, obj):
+        cmds.move(0, 0, 0, [cylinder2 + ".scalePivot", cylinder2 + ".rotatePivot"], absolute=True)
+        cmds.move(0, 0, 0, [cylinder2 + ".scalePivot", cylinder2 + ".rotatePivot"], absolute=True)
+
+        cmds.parent(cylinder1, cylinder2, sectorGroup)
+
+        cmds.xform(sectorGroup, pivots=[0, self.height/2, 0], worldSpace=True)
+
+        angle_x = random.uniform(90, 180)
+        angle_y = random.uniform(90, 180)
+        angle_z = random.uniform(90, 180)
+        cmds.rotate(angle_x, angle_y, angle_z, sectorGroup, relative=True)
+
         x = random.uniform(-15, 15)
         y = random.uniform(0, 30)
         z = random.uniform(-7.5, 7.5)
-        cmds.move(x, y, z, obj, absolute=True)
+        cmds.move(x, y, z, sectorGroup, absolute=True)
+
+        return sectorGroup
     
     #
     # 구불구불 선 생성
