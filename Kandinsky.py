@@ -60,7 +60,7 @@ class Kandinsky:
         for i in range(num_groups):
             cylinder_group = self.createSector()
 
-        num_groups = random.randint(2, 4)
+        num_groups = random.randint(2, 3)
 
         for i in range(num_groups):
             self.createCurve3D()
@@ -263,6 +263,20 @@ class Kandinsky:
         cmds.delete(aim_constraint)
         cmds.delete(locator)
         cmds.delete(curve)
+
+        reverse = random.randint(0,1)
+        degreeX = random.uniform(0, 60)
+        degreeY = random.uniform(0, 60)
+        degreeZ = random.uniform(0, 60)
+
+        print('reverse:',reverse,' degreeX:',degreeX,' degreeY:',degreeY,'degreeZ',degreeZ)
+        
+        if(reverse==1):
+            degreeY  = degreeY + 180
+
+        cmds.rotate(degreeX, degreeY, degreeZ, cylinder)
+
+
 
 # Circle 객체 생성
 r = Kandinsky()
