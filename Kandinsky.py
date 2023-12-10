@@ -42,16 +42,16 @@ class CircleType(Enum):
 
 class Kandinsky:
     def __init__(self):
+        # 전체 오브젝트 리스트
+        self.allObjects = []
 
-        # 각 타입별 원 리스트 초기화
-        self.big_circles = []
-        self.middle_circles = []
-        self.small_circles = []
+        # 전체 그룹 리스트
+        self.allGroup = []
 
-        # 각 타입별로 원 생성 및 저장
-        self.big_circles.extend(self.createCircle(CircleType.BIG))
-        self.middle_circles.extend(self.createCircle(CircleType.MIDDLE))
-        self.small_circles.extend(self.createCircle(CircleType.SMALL))
+        # 각 타입별로 원 생성
+        self.createCircle(CircleType.BIG)
+        self.createCircle(CircleType.MIDDLE)
+        self.createCircle(CircleType.SMALL)
 
         # 격자 생성
         self.createCheck()
@@ -77,19 +77,29 @@ class Kandinsky:
     #
     # 원 생성
     #
-
     def createCircle(self, circle_type):
-        circles = []
 
         if circle_type == CircleType.SMALL:
             r_min, r_max = SML_CIR_R_MIN, SML_CIR_R_MAX
             cnt = random.randint(SML_CIR_C_MIN, SML_CIR_C_MAX)
+            objectName = 'smallCircle'
+            groupName = 'smallCircleGroup'
+            smallCircles = []
+            circles = smallCircles
         elif circle_type == CircleType.MIDDLE:
             r_min, r_max = MID_CIR_R_MIN, MID_CIR_R_MAX
             cnt = random.randint(MID_CIR_C_MIN, MID_CIR_C_MAX)
+            objectName = 'middleCircle'
+            groupName = 'middleCircleGroup'
+            middleCircles = []
+            circles = middleCircles
         elif circle_type == CircleType.BIG:
             r_min, r_max = BIG_CIR_R_MIN, BIG_CIR_R_MAX
             cnt = random.randint(BIG_CIR_C_MIN, BIG_CIR_C_MAX)
+            objectName = 'bigCircle'
+            groupName = 'bigCircleGroup'
+            bigCircles = []
+            circles = bigCircles
 
         for i in range(cnt):
             x = random.uniform(X_MIN, X_MAX)
@@ -97,62 +107,103 @@ class Kandinsky:
             z = random.uniform(Z_MIN, Z_MAX)
             
             radius = random.uniform(r_min, r_max)
-            circle = cmds.polySphere(r=radius)[0]
+            circle_name = f'{objectName}{i+1}'
+            circle = cmds.polySphere(r=radius,n=circle_name)[0]
             cmds.move(x, y, z, circle)
 
             circles.append(circle)
-            
-            print("radius:", radius, " x:", x, " y:", y, " z:", z)
 
             if(circle_type == CircleType.BIG and radius>3.5):
                 sm_radius = random.uniform(MID_CIR_R_MIN, MID_CIR_R_MAX)
-                sm_circle = cmds.polySphere(r=sm_radius)[0]
+                sm_name = f'{objectName}Min'
+                sm_circle = cmds.polySphere(r=sm_radius, n=sm_name)[0]
                 cmds.move(x, y, z+(radius+sm_radius)/1.5, sm_circle)
                 
                 circles.append(sm_circle)
                 
                 print("sm_radius:", sm_radius, " x:", x, " y:", y, " z:", z)
 
-        return circles
+        group = cmds.group(circles, n=groupName)
+
+        self.allGroup.append(group)
+        self.allObjects.append(circles)
+
+        print('groupList: ', self.allGroup)
+        print('objectList:', self.allObjects)
+
+        return
 
     #
     #  격자 생성 함수
     #
-
     def createCheck(self):
         vertical_x = random.uniform(X_MIN, X_MAX)
         vertical_y = random.uniform(Y_MIN, Y_MAX)
         z = random.uniform(Z_MIN, Z_MAX)
 
+        groupObjects = []
+        verticals = []
+        horizons = []
+        cubes = []
+
         vertical_cnt = random.randint(LINE_NUM_MIN, LINE_NUM_MAX)
         height = random.uniform(LINE_LEN_MIN, LINE_LEN_MAX)
 
+        name = 'checkVertical'
+
         for i in range(0, vertical_cnt, 1):
-            cylinder = cmds.polyCylinder(r=CYLINDER_RADIUS, h=height, sx=20, sy=1, sz=1, ax=(0, 1, 0))[0]
+            cylinder = cmds.polyCylinder(r=CYLINDER_RADIUS, h=height, sx=20, sy=1, sz=1, ax=(0, 1, 0), n=f'{name}{i+1}')[0]
             cmds.move(vertical_x+i, vertical_y, z, cylinder)
+            verticals.append(cylinder)
             z = random.uniform(Z_MIN, Z_MAX)
+        
+        self.allObjects.append(verticals)
+        groupObjects.extend(verticals)
 
         horizon_cnt = random.randint(3, 6)
         width = random.uniform(5, 10)
         horizon_x = random.uniform(vertical_x+width/2, vertical_x+vertical_cnt-width/2)
         horizon_y = random.uniform(vertical_y-height/2, vertical_y+height/2-horizon_cnt)
 
+        name = 'checkHorizon'
+
         for i in range(0, horizon_cnt, 1):
-            cylinder = cmds.polyCylinder(r=CYLINDER_RADIUS, h=width, sx=20, sy=1, sz=1, ax=(0, 0, 1))[0]
+            cylinder = cmds.polyCylinder(r=CYLINDER_RADIUS, h=width, sx=20, sy=1, sz=1, ax=(0, 0, 1), n=f'{name}{i+1}')[0]
             cmds.rotate(0, 90, 0, cylinder)
-            cmds.move(horizon_x, horizon_y+i, z, cylinder) 
+            cmds.move(horizon_x, horizon_y+i, z, cylinder)
+            horizons.append(cylinder)
             z = random.uniform(Z_MIN, Z_MAX)
+
+        self.allObjects.append(horizons)
+        groupObjects.extend(horizons)
+
+        name = 'checkCube'
 
         for i in range(0, vertical_cnt-1):
             for j in range(horizon_cnt,1,-1):
-                cube = cmds.polyCube(w=0.7, h=0.7, d=0.7)[0]
+                cube = cmds.polyCube(w=0.7, h=0.7, d=0.7, n=f'{name}{i+1}')[0]
                 cmds.move(vertical_x+i+0.5, horizon_y+(horizon_cnt-j)+0.5, z, cube)
+                cubes.append(cube)
                 z = random.uniform(Z_MIN, Z_MAX)
+
+        self.allObjects.append(cubes)
+        groupObjects.extend(cubes)
+
+        group = cmds.group(groupObjects, n='checkGroup')
+
+         # 랜덤 회전값 생성
+        random_rotation_x = random.uniform(-30, 30)
+        random_rotation_y = random.uniform(-30, 30)
+        random_rotation_z = random.uniform(-30, 30)
+
+        # 그룹에 회전값 적용
+        cmds.rotate(random_rotation_x, random_rotation_y, random_rotation_z, group)
+
+        print(self.allObjects)
     
     #
     # 부채꼴 생성 함수
     #
-
     def createSector(self):
         sectorGroup = cmds.group(em=True)
 
@@ -170,6 +221,7 @@ class Kandinsky:
         angle_y = random.uniform(90, 180)
         angle_z = random.uniform(90, 180)
         cmds.rotate(angle_x, angle_y, angle_z, cylinder1, relative=True)
+        
         angle_x = random.uniform(90, 180)
         angle_y = random.uniform(90, 180)
         angle_z = random.uniform(90, 180)
