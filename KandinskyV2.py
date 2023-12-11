@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 import random
+import math
 from enum import Enum
 
 # 좌표의 최소, 최대
@@ -105,25 +106,25 @@ class Check:
             vertical_y = random.uniform(Y_MIN, Y_MAX)
             z = random.uniform(5, 15)
 
-            vertical_cnt = random.randint(LINE_NUM_MIN, LINE_NUM_MAX)
+            self.vertical_cnt = random.randint(LINE_NUM_MIN, LINE_NUM_MAX)
             height = random.uniform(LINE_LEN_MIN, LINE_LEN_MAX)
 
             name = 'checkVertical'
 
-            for i in range(0, vertical_cnt, 1):
+            for i in range(0, self.vertical_cnt, 1):
                 cylinder = cmds.polyCylinder(r=CYLINDER_RADIUS, h=height, sx=20, sy=1, sz=1, ax=(0, 1, 0), n=f'{name}{i+1}')[0]
                 cmds.move(vertical_x+i, vertical_y, z, cylinder)
                 z = random.uniform(5, 15)
                 self.objectList.append(cylinder)
 
-            horizon_cnt = random.randint(3, 6)
+            self.horizon_cnt = random.randint(3, 6)
             width = random.uniform(5, 10)
-            horizon_x = random.uniform(vertical_x+width/2, vertical_x+vertical_cnt-width/2)
-            horizon_y = random.uniform(vertical_y-height/2, vertical_y+height/2-horizon_cnt)
+            horizon_x = random.uniform(vertical_x+width/2, vertical_x+self.vertical_cnt-width/2)
+            horizon_y = random.uniform(vertical_y-height/2, vertical_y+height/2-self.horizon_cnt)
 
             name = 'checkHorizon'
 
-            for i in range(0, horizon_cnt, 1):
+            for i in range(0, self.horizon_cnt, 1):
                 cylinder = cmds.polyCylinder(r=CYLINDER_RADIUS, h=width, sx=20, sy=1, sz=1, ax=(0, 0, 1), n=f'{name}{i+1}')[0]
                 cmds.rotate(0, 90, 0, cylinder)
                 cmds.move(horizon_x, horizon_y+i, z, cylinder)
@@ -132,10 +133,10 @@ class Check:
 
             name = 'checkCube'
 
-            for i in range(0, vertical_cnt-1):
-                for j in range(horizon_cnt,1,-1):
+            for i in range(0, self.vertical_cnt-1):
+                for j in range(self.horizon_cnt,1,-1):
                     cube = cmds.polyCube(w=0.7, h=0.7, d=0.7, n=f'{name}{i+1}')[0]
-                    cmds.move(vertical_x+i+0.5, horizon_y+(horizon_cnt-j)+0.5, z, cube)
+                    cmds.move(vertical_x+i+0.5, horizon_y+(self.horizon_cnt-j)+0.5, z, cube)
                     z = random.uniform(5, 15)
                     self.objectList.append(cube)
 
@@ -321,7 +322,7 @@ class Curve3D:
 ###################################################################
 
 # SemiCircular
-SEMI_CIRCULAR_NAME = 'SemiCircular'
+SEMI_CIRCULAR_NAME = 'semiCircular'
 SEMI_CIRCULAR_RADIUS = 1.5 
 SEMI_CIRCULAR_HEIGHT = 1.5 
 
@@ -354,17 +355,17 @@ class SemiCircular:
 
         group = cmds.group(self.objectList, name=f'{SEMI_CIRCULAR_NAME}_group')
 
+        cmds.delete(combined_result, constructionHistory=True)
+        #cmds.delete(column_name)
+        #cmds.delete(cube_name)
+        #cmds.delete(result_name)
+        # for i in duplicates:
+        #      cmds.delete(i)
+
         x_position, y_position, z_position = (random.uniform(X_MIN, X_MAX),random.uniform(Y_MIN, Y_MAX),random.uniform(5, 15))
         rotation_values = [random.uniform(0, 360) for _ in range(3)]
         cmds.move(x_position, y_position, z_position, group)
         cmds.rotate(*rotation_values, group)
-        
-        #cmds.delete(combined_result, constructionHistory=True)
-        #cmds.delete(SEMI_CIRCULAR_NAME)
-        #cmds.delete(cube_name)
-        #cmds.delete(result_name)
-        # for i in range(1, 4):
-        #      cmds.delete(f'{SEMI_CIRCULAR_NAME}_{i}')
 
         self.group = group
 
@@ -599,9 +600,16 @@ def set_random_color(object_name):
 
     random_color = [red_component / 255.0, green_component / 255.0, blue_component / 255.0]
 
+    material = cmds.shadingNode('aiStandardSurface', asShader=True)
+
+    # 매트한 표면 속성 설정
+    cmds.setAttr(material + '.specular', 0.1)  # 낮은 반사율
+    cmds.setAttr(material + '.specularRoughness', 0.7)  # 높은 거칠기
+    cmds.setAttr(material + '.baseColor', *random_color, type='double3') 
+
     # 새 머터리얼 생성
-    material = cmds.shadingNode('lambert', asShader=True, name=f'{object_name}_Material')
-    cmds.setAttr(material + '.color', *random_color, type='double3')
+    # material = cmds.shadingNode('lambert', asShader=True, name=f'{object_name}_Material')
+    # cmds.setAttr(material + '.color', *random_color, type='double3')
 
     # 오브젝트에 새 머터리얼 할당
     cmds.select(object_name)
@@ -609,17 +617,28 @@ def set_random_color(object_name):
 
     # print(f"Color of {object_name} set to: {random_color}")
 
+def set_color_black(object_name):
+    color = [37/255.0,31/255.0,35/255.0]
+    material = cmds.shadingNode('lambert', asShader=True, name=f'{object_name}_Material')
+    cmds.setAttr(material + '.color', *color, type='double3')
+
+    cmds.select(object_name)
+    cmds.hyperShade(assign=material)
+
+
 ####################################################################3
 
-def Start(allObject, allGroup):
-    print('prestart ', 'allObject :', allObject, 'allGroup :', allGroup)
+def Start():
+    global allObject, allGroup
+    print(f'prestart allObject{allObject} allGroup{allGroup}')
+
     if (len(allObject)>0 or len(allGroup)>0):
         for i in range(len(allGroup)):
             if(cmds.objExists(allGroup[i])):
                     cmds.delete(allGroup[i])
     allObject = []
     allGroup = []
-    print('start ', 'allObject :', allObject, 'allGroup :', allGroup)
+    print(f'start allObject{allObject} allGroup{allGroup}')
 
     bigCircle = Circle(CircleType.BIG)
     allObject.append(bigCircle.getObjectList()) 
@@ -706,9 +725,18 @@ def Start(allObject, allGroup):
     for i in range(len(allGroup)):
         for j in range(len(allObject[i])):
             objectName = f'{allGroup[i]}' + "|" + f'{allObject[i][j]}'
-            set_random_color(objectName)
+            if(i==3 and j>=0 and j<check.horizon_cnt+check.vertical_cnt):
+                set_color_black(objectName)
+            elif(i>=4 and i<4+semiCircularCnt):
+                set_color_black(objectName)
+            elif(i>=4+semiCircularCnt and i<4+semiCircularCnt+curve3DCnt):
+                set_color_black(objectName)
+            else:
+                set_random_color(objectName)
 
 ##############################################################
+def button(allObject,allGroup):
+    print(f'printButton allObject{allObject} allGroup{allGroup}')
 
 allObject = []
 allGroup = []
@@ -724,12 +752,9 @@ my_window = cmds.window("Kandinsky", title="Kandinsky")
 cmds.columnLayout(adjustableColumn=True)
 
 # 버튼 추가
-cmds.button(label="make", command="Start(allObject,allGroup)")
+cmds.button(label="make", command="Start()")
 
-cmds.button(label="print", command="printButton(allObject,allGroup)")
+cmds.button(label="print", command="button(allObject,allGroup)")
 
 # UI 창 표시
 cmds.showWindow(my_window)
-
-def printButton(allObject,allGroup):
-    print('printButton ', 'allObject :', allObject, 'allGroup :', allGroup)
