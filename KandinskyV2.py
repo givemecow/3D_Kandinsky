@@ -316,8 +316,8 @@ class Curve3D:
 
 # SemiCircular
 SEMI_CIRCULAR_NAME = 'SemiCircular'
-SEMI_CIRCULAR_RADIUS = 0.5
-SEMI_CIRCULAR_HEIGHT = 1.0
+SEMI_CIRCULAR_RADIUS = 1.5 
+SEMI_CIRCULAR_HEIGHT = 1.5 
 
 class SemiCircular:
     def __init__(self):
@@ -590,7 +590,7 @@ def Start():
     allGroup.append(bigTeltrahedron.getGroup())
 
     randomCube = RandomCube()
-    allObject.append(randomCube.getObjectList()) 
+    allObject.append(randomCube.getObjectList())
     allGroup.append(randomCube.getGroup())
             
     return (allObject,allGroup)
