@@ -74,6 +74,30 @@ class Kandinsky:
         # 연속 반원 3개 생성
         self.createSemiCircular()
     
+    def set_random_color(self, object_name):
+        if random.random() < 0.2:
+            # 빨간색 계열
+            red_component = random.uniform(177, 203)
+            green_component = random.uniform(22, 89)
+            blue_component = random.uniform(1, 71)
+        else:
+            # 빨간색 제외
+            red_component = random.uniform(62, 250)
+            green_component = random.uniform(41, 211)
+            blue_component = random.uniform(33, 205)
+
+        random_color = [red_component / 255.0, green_component / 255.0, blue_component / 255.0]
+
+        # 새 머터리얼 생성
+        material = cmds.shadingNode('lambert', asShader=True, name=f'{object_name}_Material')
+        cmds.setAttr(material + '.color', *random_color, type='double3')
+
+        # 오브젝트에 새 머터리얼 할당
+        cmds.select(object_name)
+        cmds.hyperShade(assign=material)
+
+        print(f"Color of {object_name} set to: {random_color}")
+
     #
     # 원 생성
     #
@@ -111,6 +135,8 @@ class Kandinsky:
             circle = cmds.polySphere(r=radius,n=circle_name)[0]
             cmds.move(x, y, z, circle)
 
+            self.set_random_color(circle)
+
             circles.append(circle)
 
             if(circle_type == CircleType.BIG and radius>3.5):
@@ -119,6 +145,8 @@ class Kandinsky:
                 sm_circle = cmds.polySphere(r=sm_radius, n=sm_name)[0]
                 cmds.move(x, y, z+(radius+sm_radius)/1.5, sm_circle)
                 
+                self.set_random_color(sm_circle)
+
                 circles.append(sm_circle)
                 
                 print("sm_radius:", sm_radius, " x:", x, " y:", y, " z:", z)
@@ -156,6 +184,8 @@ class Kandinsky:
             cmds.move(vertical_x+i, vertical_y, z, cylinder)
             verticals.append(cylinder)
             z = random.uniform(Z_MIN, Z_MAX)
+
+            self.set_random_color(cylinder)
         
         self.allObjects.append(verticals)
         groupObjects.extend(verticals)
@@ -174,6 +204,8 @@ class Kandinsky:
             horizons.append(cylinder)
             z = random.uniform(Z_MIN, Z_MAX)
 
+            self.set_random_color(cylinder)
+
         self.allObjects.append(horizons)
         groupObjects.extend(horizons)
 
@@ -185,6 +217,11 @@ class Kandinsky:
                 cmds.move(vertical_x+i+0.5, horizon_y+(horizon_cnt-j)+0.5, z, cube)
                 cubes.append(cube)
                 z = random.uniform(Z_MIN, Z_MAX)
+                self.set_random_color(cube)
+
+
+                # 색상 설정 추가
+            self.set_random_color(cylinder)
 
         self.allObjects.append(cubes)
         groupObjects.extend(cubes)
@@ -244,8 +281,10 @@ class Kandinsky:
         z = random.uniform(-7.5, 7.5)
         cmds.move(x, y, z, sectorGroup, absolute=True)
 
-        return sectorGroup
-    
+        self.set_random_color(sectorGroup)
+
+        return sectorGroup  
+         
     #
     # 구불구불 선 생성
     #
@@ -315,6 +354,8 @@ class Kandinsky:
         cmds.delete(aim_constraint)
         cmds.delete(locator)
         cmds.delete(curve)
+        
+        self.set_random_color(cylinder)
 
     #
     # 연속된 반원 3개 생성
@@ -349,6 +390,7 @@ class Kandinsky:
         cmds.move(x_position, y_position, z_position, group_name)
         cmds.rotate(*rotation_values, group_name)
 
+        self.set_random_color(group_name)
 
 # Circle 객체 생성
 r = Kandinsky()
