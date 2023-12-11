@@ -220,7 +220,7 @@ class Sector:
     
     def getObjectList(self):
             return self.objectList
-
+    
 ###################################################################
 
 class Curve3D:
@@ -354,12 +354,99 @@ class SemiCircular:
         cmds.rotate(*rotation_values, group)
         
         cmds.delete(combined_result, constructionHistory=True)
-        cmds.delete(column_name)
-        cmds.delete(cube_name)
-        cmds.delete(result_name)
-        for i in range(1, 4):
-             cmds.delete(duplicates[i])
+        #cmds.delete(SEMI_CIRCULAR_NAME)
+        #cmds.delete(cube_name)
+        #cmds.delete(result_name)
+        # for i in range(1, 4):
+        #      cmds.delete(f'{SEMI_CIRCULAR_NAME}_{i}')
 
+        self.group = group
+
+    def getGroup(self):
+            return self.group
+    
+    def getObjectList(self):
+            return self.objectList
+
+###################################################################
+
+class TetrahedronType(Enum):
+    BIG = 0
+    MIDDLE = 1
+    SMALL = 2
+
+class Tetrahedron:
+    def __init__(self,tetrahedronType):
+        self.objectList = []
+        self.tetrahedronType = tetrahedronType
+
+        self.createTetrahedron()
+
+    def createTetrahedron(self):
+        if self.tetrahedronType == TetrahedronType.SMALL:
+            d_min, d_max = 1, 2
+            cnt = random.randint(1, 2)
+            objectName = 'smallTetrahedron'
+            groupName = 'smallTetrahedronGroup'
+        elif self.tetrahedronType == TetrahedronType.MIDDLE:
+            d_min, d_max = 4, 6
+            cnt = random.randint(1, 2)
+            objectName = 'middleTetrahedron'
+            groupName = 'middleTetrahedronGroup'
+        elif self.tetrahedronType == TetrahedronType.BIG:
+            d_min, d_max = 7, 9
+            cnt = 1
+            objectName = 'bigTetrahedron'
+            groupName = 'bigTetrahedronGroup'
+
+        for i in range(cnt):
+            # 무게중심의 랜덤 위치
+            center_x = random.uniform(X_MIN,X_MAX)
+            center_y = random.uniform(Y_MIN,Y_MAX)
+            center_z = random.uniform(Z_MIN,Z_MAX)
+
+            # 무게중심에서 꼭짓점까지의 랜덤 거리
+            distance = random.uniform(d_min, d_max)
+            edge_length = 2 * distance / math.sqrt(3)
+
+            # 원점에 대한 꼭짓점 좌표
+            vertices = [
+                (math.sqrt(3)/3 * edge_length, 0, -edge_length/(3*math.sqrt(6))),
+                (-math.sqrt(3)/6 * edge_length, edge_length/2, -edge_length/(3*math.sqrt(6))),
+                (-math.sqrt(3)/6 * edge_length, -edge_length/2, -edge_length/(3*math.sqrt(6))),
+                (0, 0, math.sqrt(6)/3 * edge_length)
+            ]
+
+            # 무게중심 위치로 꼭짓점 이동
+            vertices_moved = [(x + center_x, y + center_y, z + center_z) for x, y, z in vertices]
+
+            # 각 면을 개별적으로 생성
+            faces = []
+            faces.append(cmds.polyCreateFacet(p=[vertices_moved[0], vertices_moved[1], vertices_moved[2]])[0])
+            faces.append(cmds.polyCreateFacet(p=[vertices_moved[0], vertices_moved[1], vertices_moved[3]])[0])
+            faces.append(cmds.polyCreateFacet(p=[vertices_moved[0], vertices_moved[2], vertices_moved[3]])[0])
+            faces.append(cmds.polyCreateFacet(p=[vertices_moved[1], vertices_moved[2], vertices_moved[3]])[0])
+
+            # 0번째와 2번째 면을 뒤집음
+            cmds.polyNormal(faces[0], normalMode=0, userNormalMode=0, ch=1)
+            cmds.polyNormal(faces[2], normalMode=0, userNormalMode=0, ch=1)
+
+            # 생성된 면들을 결합
+            tetrahedron = cmds.polyUnite(faces, ch=True, n=f'{objectName}{i}')[0]
+            cmds.delete(tetrahedron, ch=True)  # 히스토리 삭제
+
+            cmds.xform(tetrahedron, pivots=[center_x, center_y, center_z], worldSpace=True)
+
+            random_rotation_x = random.uniform(0, 360)
+            random_rotation_y = random.uniform(0, 360)
+            random_rotation_z = random.uniform(0, 360)
+            cmds.rotate(random_rotation_x, random_rotation_y, random_rotation_z, tetrahedron)
+
+            self.objectList.append(tetrahedron)
+            
+            cmds.select(clear=True)
+        
+        group = cmds.group(self.objectList, name=groupName)
         self.group = group
 
     def getGroup(self):
@@ -370,78 +457,147 @@ class SemiCircular:
     
 ##################################################################
 
-allObject = []
-allGroup = []
+class RandomCube:
+    def __init__(self):
+        self.groupName = 'randomCubeGroup'
+        self.cnt = random.randint(6, 8)
 
-bigCircle = Circle(CircleType.BIG)
-allObject.append(bigCircle.getObjectList()) 
-allGroup.append(bigCircle.getGroup()) 
+        self.objectList = []
+        self.createRandomCube()
 
-middleCircle = Circle(CircleType.MIDDLE)
-allObject.append(middleCircle.getObjectList())
-allGroup.append(middleCircle.getGroup())
+    def createRandomCube(self):
+        for i in range(self.cnt):
 
-smallCircle = Circle(CircleType.SMALL)
-allObject.append(smallCircle.getObjectList()) 
-allGroup.append(smallCircle.getGroup()) 
+            whd = random.uniform(0.1, 2)
+
+            # 큐브 생성
+            cube = cmds.polyCube(w=whd,d=whd,h=whd)[0]
+
+            # 랜덤 위치 생성
+            x = random.uniform(X_MIN, X_MAX)
+            y = random.uniform(Y_MIN, Y_MAX)
+            z = random.uniform(Z_MIN, Z_MAX)
+
+            # 큐브를 랜덤 위치로 이동
+            cmds.move(x, y, z, cube)
+
+            # 랜덤 회전값 생성
+            rotation_x = random.uniform(0, 360)
+            rotation_y = random.uniform(0, 360)
+            rotation_z = random.uniform(0, 360)
+
+            # 큐브에 랜덤 회전값 적용
+            cmds.rotate(rotation_x, rotation_y, rotation_z, cube)
+
+            self.objectList.append(cube)
+
+        group = cmds.group(self.objectList, n=self.groupName)
+        self.group = group
+
+    def getGroup(self):
+        return self.group
+
+    def getObjectList(self):
+        return self.objectList
+     
+
+##################################################################
+
+def Start():
+    allObject = []
+    allGroup = []
+
+    bigCircle = Circle(CircleType.BIG)
+    allObject.append(bigCircle.getObjectList()) 
+    allGroup.append(bigCircle.getGroup()) 
+
+    middleCircle = Circle(CircleType.MIDDLE)
+    allObject.append(middleCircle.getObjectList())
+    allGroup.append(middleCircle.getGroup())
+
+    smallCircle = Circle(CircleType.SMALL)
+    allObject.append(smallCircle.getObjectList()) 
+    allGroup.append(smallCircle.getGroup()) 
 
 
-check = Check()
-allObject.append(check.getObjectList())  
-allGroup.append(check.getGroup())  
+    check = Check()
+    allObject.append(check.getObjectList())  
+    allGroup.append(check.getGroup())  
 
 
-semiCircularCnt = random.randint(2, 4)
+    semiCircularCnt = random.randint(2, 4)
 
-semiCircular1 = Sector()
-semiCircular2 = Sector()
-semiCircular3 = Sector()
-semiCircular4 = Sector()
+    semiCircular1 = Sector()
+    semiCircular2 = Sector()
+    semiCircular3 = Sector()
+    semiCircular4 = Sector()
 
-semiCircular1.activeTrue()
-allObject.append(semiCircular1.getObjectList()) 
-allGroup.append(semiCircular1.getGroup())
+    semiCircular1.activeTrue()
+    allObject.append(semiCircular1.getObjectList()) 
+    allGroup.append(semiCircular1.getGroup())
 
-semiCircular2.activeTrue()
-allObject.append(semiCircular2.getObjectList()) 
-allGroup.append(semiCircular2.getGroup()) 
+    semiCircular2.activeTrue()
+    allObject.append(semiCircular2.getObjectList()) 
+    allGroup.append(semiCircular2.getGroup()) 
 
-if(semiCircularCnt>2):
-    semiCircular3.activeTrue()
-    allObject.append(semiCircular3.getObjectList()) 
-    allGroup.append(semiCircular3.getGroup()) 
-    if(semiCircularCnt>3):
-        semiCircular4.activeTrue()
-        allObject.append(semiCircular4.getObjectList()) 
-        allGroup.append(semiCircular4.getGroup()) 
+    if(semiCircularCnt>2):
+        semiCircular3.activeTrue()
+        allObject.append(semiCircular3.getObjectList()) 
+        allGroup.append(semiCircular3.getGroup()) 
+        if(semiCircularCnt>3):
+            semiCircular4.activeTrue()
+            allObject.append(semiCircular4.getObjectList()) 
+            allGroup.append(semiCircular4.getGroup()) 
 
-curve3DCnt = random.randint(2, 4)
+    curve3DCnt = random.randint(2, 4)
 
-curve3D1 = Curve3D(1)
-curve3D2 = Curve3D(2)
-curve3D3 = Curve3D(3)
-curve3D4 = Curve3D(4)
+    curve3D1 = Curve3D(1)
+    curve3D2 = Curve3D(2)
+    curve3D3 = Curve3D(3)
+    curve3D4 = Curve3D(4)
 
-curve3D1.activeTrue()
-allObject.append(curve3D1.getObjectList()) 
-allGroup.append(curve3D1.getGroup())
+    curve3D1.activeTrue()
+    allObject.append(curve3D1.getObjectList()) 
+    allGroup.append(curve3D1.getGroup())
 
-curve3D2.activeTrue()
-allObject.append(curve3D2.getObjectList()) 
-allGroup.append(curve3D2.getGroup()) 
+    curve3D2.activeTrue()
+    allObject.append(curve3D2.getObjectList()) 
+    allGroup.append(curve3D2.getGroup()) 
 
-if(curve3DCnt>2):
-    curve3D3.activeTrue()
-    allObject.append(curve3D3.getObjectList()) 
-    allGroup.append(curve3D3.getGroup()) 
-    if(curve3DCnt>3):
-        curve3D4.activeTrue()
-        allObject.append(curve3D4.getObjectList()) 
-        allGroup.append(curve3D4.getGroup()) 
+    if(curve3DCnt>2):
+        curve3D3.activeTrue()
+        allObject.append(curve3D3.getObjectList()) 
+        allGroup.append(curve3D3.getGroup()) 
+        if(curve3DCnt>3):
+            curve3D4.activeTrue()
+            allObject.append(curve3D4.getObjectList()) 
+            allGroup.append(curve3D4.getGroup()) 
 
-semiCircular =  SemiCircular()
-allObject.append(semiCircular.getObjectList()) 
-allGroup.append(semiCircular.getGroup()) 
+    semiCircular =  SemiCircular()
+    allObject.append(semiCircular.getObjectList()) 
+    allGroup.append(semiCircular.getGroup()) 
+
+    smallTeltrahedron = Tetrahedron(TetrahedronType.SMALL)
+    allObject.append(smallTeltrahedron.getObjectList()) 
+    allGroup.append(smallTeltrahedron.getGroup())
+
+    middleTeltrahedron = Tetrahedron(TetrahedronType.MIDDLE)
+    allObject.append(middleTeltrahedron.getObjectList()) 
+    allGroup.append(middleTeltrahedron.getGroup()) 
+
+    bigTeltrahedron = Tetrahedron(TetrahedronType.BIG)
+    allObject.append(bigTeltrahedron.getObjectList()) 
+    allGroup.append(bigTeltrahedron.getGroup())
+
+    randomCube = RandomCube()
+    allObject.append(randomCube.getObjectList()) 
+    allGroup.append(randomCube.getGroup())
+            
+    return (allObject,allGroup)
+
+##############################################################
+
+allObject,allGroup = Start()
 
 print(allObject)
 print(allGroup)
