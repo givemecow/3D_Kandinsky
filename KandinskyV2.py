@@ -2,10 +2,6 @@ import maya.cmds as cmds
 import random
 from enum import Enum
 
-# 초기화
-cmds.select(all=True)
-cmds.delete()
-
 # 좌표의 최소, 최대
 X_MIN, X_MAX = -15,15
 Y_MIN, Y_MAX = 0, 30
@@ -504,6 +500,13 @@ class RandomCube:
 ##################################################################
 
 def Start():
+    all_objects = cmds.ls()
+
+    if all_objects: 
+       
+        cmds.select(all=True)
+        cmds.delete()
+
     allObject = []
     allGroup = []
 
@@ -592,12 +595,24 @@ def Start():
     randomCube = RandomCube()
     allObject.append(randomCube.getObjectList())
     allGroup.append(randomCube.getGroup())
-            
-    return (allObject,allGroup)
 
 ##############################################################
 
-allObject,allGroup = Start()
+allObject = []
+allGroup = []
 
-print(allObject)
-print(allGroup)
+# UI 창이 이미 열려있다면 닫기
+if cmds.window("Kandinsky", exists=True):
+    cmds.deleteUI("Kandinsky")
+
+# UI 창 생성
+my_window = cmds.window("Kandinsky", title="Kandinsky")
+
+# 레이아웃 생성
+cmds.columnLayout(adjustableColumn=True)
+
+# 버튼 추가
+cmds.button(label="make", command="Start()")
+
+# UI 창 표시
+cmds.showWindow(my_window)
