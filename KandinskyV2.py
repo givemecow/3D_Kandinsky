@@ -5,7 +5,7 @@ from enum import Enum
 # 좌표의 최소, 최대
 X_MIN, X_MAX = -15,15
 Y_MIN, Y_MAX = 0, 30
-Z_MIN, Z_MAX = -7.5, 7.5
+Z_MIN, Z_MAX = -10, 10
 
 #############################################################
 
@@ -55,7 +55,10 @@ class Circle:
         for i in range(cnt):
             x = random.uniform(X_MIN, X_MAX)
             y = random.uniform(Y_MIN, Y_MAX)
-            z = random.uniform(Z_MIN, Z_MAX)
+            if(self.circleType == CircleType.BIG):
+                z = random.uniform(5, 15)
+            else:
+                z = random.uniform(Z_MIN, Z_MAX)
             
             radius = random.uniform(r_min, r_max)
             circle_name = f'{objectName}{i+1}'
@@ -100,7 +103,7 @@ class Check:
         def createCheck(self):
             vertical_x = random.uniform(X_MIN, X_MAX)
             vertical_y = random.uniform(Y_MIN, Y_MAX)
-            z = random.uniform(Z_MIN, Z_MAX)
+            z = random.uniform(5, 15)
 
             vertical_cnt = random.randint(LINE_NUM_MIN, LINE_NUM_MAX)
             height = random.uniform(LINE_LEN_MIN, LINE_LEN_MAX)
@@ -110,7 +113,7 @@ class Check:
             for i in range(0, vertical_cnt, 1):
                 cylinder = cmds.polyCylinder(r=CYLINDER_RADIUS, h=height, sx=20, sy=1, sz=1, ax=(0, 1, 0), n=f'{name}{i+1}')[0]
                 cmds.move(vertical_x+i, vertical_y, z, cylinder)
-                z = random.uniform(Z_MIN, Z_MAX)
+                z = random.uniform(5, 15)
                 self.objectList.append(cylinder)
 
             horizon_cnt = random.randint(3, 6)
@@ -124,7 +127,7 @@ class Check:
                 cylinder = cmds.polyCylinder(r=CYLINDER_RADIUS, h=width, sx=20, sy=1, sz=1, ax=(0, 0, 1), n=f'{name}{i+1}')[0]
                 cmds.rotate(0, 90, 0, cylinder)
                 cmds.move(horizon_x, horizon_y+i, z, cylinder)
-                z = random.uniform(Z_MIN, Z_MAX)
+                z = random.uniform(5, 15)
                 self.objectList.append(cylinder)
 
             name = 'checkCube'
@@ -133,7 +136,7 @@ class Check:
                 for j in range(horizon_cnt,1,-1):
                     cube = cmds.polyCube(w=0.7, h=0.7, d=0.7, n=f'{name}{i+1}')[0]
                     cmds.move(vertical_x+i+0.5, horizon_y+(horizon_cnt-j)+0.5, z, cube)
-                    z = random.uniform(Z_MIN, Z_MAX)
+                    z = random.uniform(5, 15)
                     self.objectList.append(cube)
 
             group = cmds.group(self.objectList, n='checkGroup')
@@ -160,7 +163,7 @@ class Sector:
     def __init__(self):
         self.thickness = CYLINDER_RADIUS
         self.height = 1
-        self.groupName = 'semiCircularGroup'
+        self.groupName = 'sectorGroup'
 
         self.active = False
 
@@ -204,9 +207,9 @@ class Sector:
         angle_z = random.uniform(90, 180)
         cmds.rotate(angle_x, angle_y, angle_z, group, relative=True)
 
-        x = random.uniform(-15, 15)
-        y = random.uniform(0, 30)
-        z = random.uniform(-7.5, 7.5)
+        x = random.uniform(X_MIN, X_MAX)
+        y = random.uniform(Y_MIN, Y_MAX)
+        z = random.uniform(-5, 5)
         cmds.move(x, y, z, group, absolute=True)
 
         self.group = group
@@ -232,13 +235,7 @@ class Curve3D:
 
     def createCurve3D(self):
          
-        cylinder = cmds.polyCylinder(r=0.2, h=0.1, sx=20, sy=1, sz=1, ax=(0, 1, 0))[0]
-
-        x = random.uniform(X_MIN, X_MAX)
-        y = random.uniform(Y_MIN, Y_MAX)
-        z = random.uniform(Z_MIN, Z_MAX)
-
-        cmds.move(x, y, z, cylinder)
+        cylinder = cmds.polyCylinder(r=0.15, h=0.1, sx=20, sy=1, sz=1, ax=(0, 1, 0))[0]
 
         points_cnt = random.randint(6, 10)
         print('points_cnt',points_cnt)
@@ -248,18 +245,25 @@ class Curve3D:
         degreeH = middleH
         maxW = maxH+random.uniform(0,5)-2.5
         minW = maxW/(points_cnt*3)
+
+        x = random.uniform(X_MIN, X_MAX)
+        y = random.uniform(Y_MIN, Y_MAX)
+        z = random.uniform(Z_MIN-maxW/2, Z_MAX+maxW/2)
+
+        cmds.move(x, y, z, cylinder)
+
         points = []
 
         for i in range(1,points_cnt+1):
             if(i==1):
                 pointX = x
-                pointY = y
+                pointY = y+random.uniform(0,3)
             # i가 홀수인 경우
             elif (i%2==1):
-                pointY = y+middleH/(points_cnt-(i-1))-3
+                pointY = y+middleH*(0.5**(points_cnt-(i-1)))-3+random.uniform(0,2)
             # i가 짝수인 경우
             else:
-                pointY = y+middleH+middleH/(i-1)
+                pointY = y+middleH+middleH*(0.5**(i-1))+random.uniform(-2,0)
             
             points.append((pointX, pointY, z))
 
@@ -284,18 +288,24 @@ class Curve3D:
         # 실린더가 Locator를 바라보도록 설정
         aim_constraint = cmds.aimConstraint(locator, cylinder, aimVector=(0, 1, 0), upVector=(0, 0, 1))
 
-        cmds.move(x-0.4, y-0.4, z, cylinder)
+        cmds.move(first_point[0], first_point[1]-0.2, first_point[2], cylinder)
 
         # 실린더의 한쪽 바닥면 선택 (f[40]부터 f[59]까지)
         faces = ['{0}.f[{1}]'.format(cylinder, i) for i in range(40, 60)]
 
         # 선택된 페이스들에 대해 추출 실행
-        extrude = cmds.polyExtrudeFacet(faces, inputCurve=curve, divisions=50, ltz=0.5)
+        extrude = cmds.polyExtrudeFacet(faces, inputCurve=curve, divisions=maxW*20,ltz=0.1, ltx=0.1, lty=0.1)
 
         cmds.delete(cylinder, constructionHistory=True)
         cmds.delete(aim_constraint)
         cmds.delete(locator)
         cmds.delete(curve)
+
+        rotateType = random.randint(0, 1)
+        if(rotateType==0):
+            cmds.rotate(random.uniform(-30,30),random.uniform(-30,30)-180,random.uniform(-30,30), cylinder)
+        else:
+            cmds.rotate(random.uniform(-30,30),random.uniform(-30,30),random.uniform(-30,30), cylinder)
 
         self.objectList.append(cylinder)
         groupName = 'curve3D'
@@ -344,12 +354,12 @@ class SemiCircular:
 
         group = cmds.group(self.objectList, name=f'{SEMI_CIRCULAR_NAME}_group')
 
-        x_position, y_position, z_position = (random.uniform(-15, 15),random.uniform(0, 30),random.uniform(-7.5, 7.5))
+        x_position, y_position, z_position = (random.uniform(X_MIN, X_MAX),random.uniform(Y_MIN, Y_MAX),random.uniform(5, 15))
         rotation_values = [random.uniform(0, 360) for _ in range(3)]
         cmds.move(x_position, y_position, z_position, group)
         cmds.rotate(*rotation_values, group)
         
-        cmds.delete(combined_result, constructionHistory=True)
+        #cmds.delete(combined_result, constructionHistory=True)
         #cmds.delete(SEMI_CIRCULAR_NAME)
         #cmds.delete(cube_name)
         #cmds.delete(result_name)
@@ -380,17 +390,17 @@ class Tetrahedron:
 
     def createTetrahedron(self):
         if self.tetrahedronType == TetrahedronType.SMALL:
-            d_min, d_max = 1, 2
+            d_min, d_max = 0.05, 1
             cnt = random.randint(1, 2)
             objectName = 'smallTetrahedron'
             groupName = 'smallTetrahedronGroup'
         elif self.tetrahedronType == TetrahedronType.MIDDLE:
-            d_min, d_max = 4, 6
+            d_min, d_max = 1.5, 2.5
             cnt = random.randint(1, 2)
             objectName = 'middleTetrahedron'
             groupName = 'middleTetrahedronGroup'
         elif self.tetrahedronType == TetrahedronType.BIG:
-            d_min, d_max = 7, 9
+            d_min, d_max = 3, 5
             cnt = 1
             objectName = 'bigTetrahedron'
             groupName = 'bigTetrahedronGroup'
@@ -399,7 +409,10 @@ class Tetrahedron:
             # 무게중심의 랜덤 위치
             center_x = random.uniform(X_MIN,X_MAX)
             center_y = random.uniform(Y_MIN,Y_MAX)
-            center_z = random.uniform(Z_MIN,Z_MAX)
+            if(self.tetrahedronType == TetrahedronType.BIG):
+                center_z = random.uniform(-5,-15)
+            else:
+                center_z = random.uniform(Z_MIN,Z_MAX)
 
             # 무게중심에서 꼭짓점까지의 랜덤 거리
             distance = random.uniform(d_min, d_max)
@@ -495,20 +508,118 @@ class RandomCube:
 
     def getObjectList(self):
         return self.objectList
+###################################################################
+class SemiCircleLine():
+    def __init__(self):
+        self.groupName = 'semiCircleLineGroup'
+        self.cnt = random.randint(2, 4)
+        self.name = 'semiCircleLine'
+        self.num_points=100
+
+        self.objectList = []
+        self.createSemiCircleLine()
+
+    def createSemiCircleLine(self):
+        for i in range(self.cnt):
+            points = []
+            
+            for i in range(self.num_points):
+                x = -SEMI_CIRCULAR_RADIUS + 2 * SEMI_CIRCULAR_RADIUS * float(i) / (self.num_points - 1)
+                y = math.sqrt(SEMI_CIRCULAR_RADIUS**2 - x**2)  # 반원 방정식
+                points.append((x, y, 0))  # Z 좌표는 0으로 설정
+
+            # 포인트로 커브 생성
+            curve = cmds.curve(d=2, p=points)
+
+            # 커브의 첫 번째 포인트에 Locator 생성
+            locator = cmds.spaceLocator()[0]
+            first_point = cmds.pointPosition(curve + '.cv[0]')
+            cmds.move(first_point[0], first_point[1], first_point[2], locator)
+
+            cylinder = cmds.polyCylinder(r=0.15, h=0.1, sx=20, sy=1, sz=1, ax=(0, 1, 0), n=f'{self.name}{i}')[0]
+
+            cmds.move(first_point[0], first_point[1]-0.1, first_point[2], cylinder)
+
+            # 실린더에 Aim Constraint 적용
+            # 실린더가 Locator를 바라보도록 설정
+            aim_constraint = cmds.aimConstraint(locator, cylinder, aimVector=(0, 1, 0), upVector=(0, 0, 1))
+
+            # 실린더의 한쪽 바닥면 선택 (f[40]부터 f[59]까지)
+            faces = ['{0}.f[{1}]'.format(cylinder, i) for i in range(40, 60)]
+
+            # 선택된 페이스들에 대해 추출 실행
+            extrude = cmds.polyExtrudeFacet(faces, inputCurve=curve, divisions=80, ltz=0.1, ltx=0.1, lty=0.1)
+
+            cmds.delete(cylinder, constructionHistory=True)
+            cmds.delete(aim_constraint)
+            cmds.delete(locator)
+            cmds.delete(curve)
+
+            # 랜덤 위치 생성
+            x = random.uniform(X_MIN, X_MAX)
+            y = random.uniform(Y_MIN, Y_MAX)
+            z = random.uniform(Z_MIN, Z_MAX)
+
+            # 큐브를 랜덤 위치로 이동
+            cmds.move(x, y, z, cylinder)
+
+            # 랜덤 회전값 생성
+            rotation_x = random.uniform(0, 360)
+            rotation_y = random.uniform(0, 360)
+            rotation_z = random.uniform(0, 360)
+
+            # 큐브에 랜덤 회전값 적용
+            cmds.rotate(rotation_x, rotation_y, rotation_z, cylinder)
+
+            self.objectList.append(cylinder)
+
+        group = cmds.group(self.objectList, n=self.groupName)
+        self.group = group
+
+    def getGroup(self):
+        return self.group
+
+    def getObjectList(self):
+        return self.objectList
      
 
 ##################################################################
 
-def Start():
-    all_objects = cmds.ls()
+def set_random_color(object_name):
+    if random.random() < 0.2:
+        # 빨간색 계열
+        red_component = random.uniform(177, 203)
+        green_component = random.uniform(22, 89)
+        blue_component = random.uniform(1, 71)
+    else:
+        # 빨간색 제외
+        red_component = random.uniform(62, 250)
+        green_component = random.uniform(41, 211)
+        blue_component = random.uniform(33, 205)
 
-    if all_objects: 
-       
-        cmds.select(all=True)
-        cmds.delete()
+    random_color = [red_component / 255.0, green_component / 255.0, blue_component / 255.0]
 
+    # 새 머터리얼 생성
+    material = cmds.shadingNode('lambert', asShader=True, name=f'{object_name}_Material')
+    cmds.setAttr(material + '.color', *random_color, type='double3')
+
+    # 오브젝트에 새 머터리얼 할당
+    cmds.select(object_name)
+    cmds.hyperShade(assign=material)
+
+    # print(f"Color of {object_name} set to: {random_color}")
+
+####################################################################3
+
+def Start(allObject, allGroup):
+    print('prestart ', 'allObject :', allObject, 'allGroup :', allGroup)
+    if (len(allObject)>0 or len(allGroup)>0):
+        for i in range(len(allGroup)):
+            if(cmds.objExists(allGroup[i])):
+                    cmds.delete(allGroup[i])
     allObject = []
     allGroup = []
+    print('start ', 'allObject :', allObject, 'allGroup :', allGroup)
 
     bigCircle = Circle(CircleType.BIG)
     allObject.append(bigCircle.getObjectList()) 
@@ -552,29 +663,19 @@ def Start():
             allObject.append(semiCircular4.getObjectList()) 
             allGroup.append(semiCircular4.getGroup()) 
 
-    curve3DCnt = random.randint(2, 4)
+    curve3DCnt = random.randint(1, 2)
 
     curve3D1 = Curve3D(1)
     curve3D2 = Curve3D(2)
-    curve3D3 = Curve3D(3)
-    curve3D4 = Curve3D(4)
 
     curve3D1.activeTrue()
     allObject.append(curve3D1.getObjectList()) 
-    allGroup.append(curve3D1.getGroup())
+    allGroup.append(curve3D1.getGroup()) 
 
-    curve3D2.activeTrue()
-    allObject.append(curve3D2.getObjectList()) 
-    allGroup.append(curve3D2.getGroup()) 
-
-    if(curve3DCnt>2):
-        curve3D3.activeTrue()
-        allObject.append(curve3D3.getObjectList()) 
-        allGroup.append(curve3D3.getGroup()) 
-        if(curve3DCnt>3):
-            curve3D4.activeTrue()
-            allObject.append(curve3D4.getObjectList()) 
-            allGroup.append(curve3D4.getGroup()) 
+    if(curve3DCnt>1):
+        curve3D2.activeTrue()
+        allObject.append(curve3D2.getObjectList()) 
+        allGroup.append(curve3D2.getGroup()) 
 
     semiCircular =  SemiCircular()
     allObject.append(semiCircular.getObjectList()) 
@@ -596,6 +697,17 @@ def Start():
     allObject.append(randomCube.getObjectList())
     allGroup.append(randomCube.getGroup())
 
+    semiCircleLine = SemiCircleLine()
+    allObject.append(semiCircleLine.getObjectList())
+    allGroup.append(semiCircleLine.getGroup())
+
+    print('end ', 'allObject :', allObject, 'allGroup :', allGroup)
+
+    for i in range(len(allGroup)):
+        for j in range(len(allObject[i])):
+            objectName = f'{allGroup[i]}' + "|" + f'{allObject[i][j]}'
+            set_random_color(objectName)
+
 ##############################################################
 
 allObject = []
@@ -612,7 +724,12 @@ my_window = cmds.window("Kandinsky", title="Kandinsky")
 cmds.columnLayout(adjustableColumn=True)
 
 # 버튼 추가
-cmds.button(label="make", command="Start()")
+cmds.button(label="make", command="Start(allObject,allGroup)")
+
+cmds.button(label="print", command="printButton(allObject,allGroup)")
 
 # UI 창 표시
 cmds.showWindow(my_window)
+
+def printButton(allObject,allGroup):
+    print('printButton ', 'allObject :', allObject, 'allGroup :', allGroup)
