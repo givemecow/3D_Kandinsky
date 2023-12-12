@@ -902,6 +902,160 @@ def Animation():
                 cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
                 
                 cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep+4)
+        elif(4+sectorCnt<=i<4+sectorCnt+curve3DCnt):
+            firstTime = 3 + 10*(i-4)
+            step = 4
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
+        elif(i==4+sectorCnt+curve3DCnt):
+            firstTime = 4
+            step = 4
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
+        elif(i==4+sectorCnt+curve3DCnt+1):
+            firstTime = 5
+            step = 4
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
+        elif(i==4+sectorCnt+curve3DCnt+2):
+            firstTime = 6
+            step = 4
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
+        elif(i==4+sectorCnt+curve3DCnt+3):
+            firstTime = 7
+            step = 4
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
+        elif(i==4+sectorCnt+curve3DCnt+4):
+            firstTime = 8
+            step = 4
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
+        elif(i==4+sectorCnt+curve3DCnt+5):
+            firstTime = 9
+            step = 4
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
 
 
 ########################################################################
