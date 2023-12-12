@@ -175,33 +175,27 @@ class Sector:
         self.createSector()
     
     def createSector(self):
+        height1 = random.uniform(5, 15)
+        height2 = random.uniform(5, 15)
 
-        cylinder1 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=self.height)[0]
-        cmds.move(0, self.height / 2, 0, cylinder1 + ".scalePivot", cylinder1 + ".rotatePivot", absolute=True)
-        scale_y = random.uniform(5, 15)
-        cmds.scale(1, scale_y, 1, cylinder1)
-        angle_x = random.uniform(90, 180)
-        angle_y = random.uniform(90, 180)
-        angle_z = random.uniform(90, 180)
-        cmds.rotate(angle_x, angle_y, angle_z, cylinder1, relative=True)
-        cmds.move(0, 0, 0, [cylinder1 + ".scalePivot", cylinder1 + ".rotatePivot"], absolute=True)
+        cylinder1 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=height1, ax=(0, 0, 1))[0]
+        cylinder2 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=height2, ax=(0, 0, 1))[0]
+
+        cmds.xform(cylinder1, pivots=[0, 0, height1/2], worldSpace=True)
+        cmds.xform(cylinder2, pivots=[0, 0, height2/2], worldSpace=True)
+
+        if height1 < height2:
+            cmds.move(0, 0, (height2 - height1)/2, cylinder1)
+        else:
+            cmds.move(0, 0, (height1 - height2)/2, cylinder2)
+        
+        angle_y = random.uniform(15, 160)
+        cmds.rotate(0, angle_y, 0, cylinder1)
+
         self.objectList.append(cylinder1)
-
-        cylinder2 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=self.height)[0]
-        cmds.move(0, self.height / 2, 0, cylinder2 + ".scalePivot", cylinder2 + ".rotatePivot", absolute=True)
-        scale_y = random.uniform(5, 15)
-        cmds.scale(1, scale_y, 1, cylinder2)
-        angle_x = random.uniform(90, 180)
-        angle_y = random.uniform(90, 180)
-        angle_z = random.uniform(90, 180)
-        cmds.rotate(angle_x, angle_y, angle_z, cylinder2, relative=True)
-        cmds.move(0, 0, 0, [cylinder2 + ".scalePivot", cylinder2 + ".rotatePivot"], absolute=True)
         self.objectList.append(cylinder2)
 
-        
-        group = cmds.group(self.objectList, n=self.groupName)
-
-        cmds.xform(group, pivots=[0, self.height/2, 0], worldSpace=True)
+        group = cmds.group(self.objectList, n='group')
 
         angle_x = random.uniform(90, 180)
         angle_y = random.uniform(90, 180)
@@ -210,9 +204,9 @@ class Sector:
 
         x = random.uniform(X_MIN, X_MAX)
         y = random.uniform(Y_MIN, Y_MAX)
-        z = random.uniform(-5, 5)
+        z = random.uniform(Z_MIN, Z_MAX)
         cmds.move(x, y, z, group, absolute=True)
-
+        
         self.group = group
 
     def getGroup(self):

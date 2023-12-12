@@ -161,9 +161,10 @@ class Check:
 #################################################################
 
 class Sector:
-    def __init__(self):
+    def __init__(self,num):
         self.thickness = CYLINDER_RADIUS
         self.height = 1
+        self.num = num
         self.groupName = 'sectorGroup'
 
         self.active = False
@@ -175,33 +176,27 @@ class Sector:
         self.createSector()
     
     def createSector(self):
+        height1 = random.uniform(5, 15)
+        height2 = random.uniform(5, 15)
 
-        cylinder1 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=self.height)[0]
-        cmds.move(0, self.height / 2, 0, cylinder1 + ".scalePivot", cylinder1 + ".rotatePivot", absolute=True)
-        scale_y = random.uniform(5, 15)
-        cmds.scale(1, scale_y, 1, cylinder1)
-        angle_x = random.uniform(90, 180)
-        angle_y = random.uniform(90, 180)
-        angle_z = random.uniform(90, 180)
-        cmds.rotate(angle_x, angle_y, angle_z, cylinder1, relative=True)
-        cmds.move(0, 0, 0, [cylinder1 + ".scalePivot", cylinder1 + ".rotatePivot"], absolute=True)
+        cylinder1 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=height1, ax=(0, 0, 1))[0]
+        cylinder2 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=height2, ax=(0, 0, 1))[0]
+
+        cmds.xform(cylinder1, pivots=[0, 0, height1/2], worldSpace=True)
+        cmds.xform(cylinder2, pivots=[0, 0, height2/2], worldSpace=True)
+
+        if height1 < height2:
+            cmds.move(0, 0, (height2 - height1)/2, cylinder1)
+        else:
+            cmds.move(0, 0, (height1 - height2)/2, cylinder2)
+        
+        angle_y = random.uniform(15, 160)
+        cmds.rotate(0, angle_y, 0, cylinder1)
+
         self.objectList.append(cylinder1)
-
-        cylinder2 = cmds.polyCylinder(sx=20, sy=1, sz=1, r=self.thickness, h=self.height)[0]
-        cmds.move(0, self.height / 2, 0, cylinder2 + ".scalePivot", cylinder2 + ".rotatePivot", absolute=True)
-        scale_y = random.uniform(5, 15)
-        cmds.scale(1, scale_y, 1, cylinder2)
-        angle_x = random.uniform(90, 180)
-        angle_y = random.uniform(90, 180)
-        angle_z = random.uniform(90, 180)
-        cmds.rotate(angle_x, angle_y, angle_z, cylinder2, relative=True)
-        cmds.move(0, 0, 0, [cylinder2 + ".scalePivot", cylinder2 + ".rotatePivot"], absolute=True)
         self.objectList.append(cylinder2)
 
-        
-        group = cmds.group(self.objectList, n=self.groupName)
-
-        cmds.xform(group, pivots=[0, self.height/2, 0], worldSpace=True)
+        group = cmds.group(self.objectList, n=f'{self.groupName}{self.num}')
 
         angle_x = random.uniform(90, 180)
         angle_y = random.uniform(90, 180)
@@ -210,9 +205,9 @@ class Sector:
 
         x = random.uniform(X_MIN, X_MAX)
         y = random.uniform(Y_MIN, Y_MAX)
-        z = random.uniform(-5, 5)
+        z = random.uniform(Z_MIN, Z_MAX)
         cmds.move(x, y, z, group, absolute=True)
-
+        
         self.group = group
 
     def getGroup(self):
@@ -353,14 +348,10 @@ class SemiCircular:
         combined_result = cmds.polyUnite([result_name] + duplicates, name=f'{SEMI_CIRCULAR_NAME}_combined')[0]
         self.objectList.append(combined_result)
 
-        group = cmds.group(self.objectList, name=f'{SEMI_CIRCULAR_NAME}_group')
+        group = cmds.group(self.objectList, name=f'{SEMI_CIRCULAR_NAME}Group')
 
         cmds.delete(combined_result, constructionHistory=True)
-        #cmds.delete(column_name)
-        #cmds.delete(cube_name)
-        #cmds.delete(result_name)
-        # for i in duplicates:
-        #      cmds.delete(i)
+
 
         x_position, y_position, z_position = (random.uniform(X_MIN, X_MAX),random.uniform(Y_MIN, Y_MAX),random.uniform(5, 15))
         rotation_values = [random.uniform(0, 360) for _ in range(3)]
@@ -587,6 +578,7 @@ class SemiCircleLine():
 ##################################################################
 
 def set_random_color(object_name):
+
     if random.random() < 0.2:
         # 빨간색 계열
         red_component = random.uniform(177, 203)
@@ -615,9 +607,12 @@ def set_random_color(object_name):
     cmds.select(object_name)
     cmds.hyperShade(assign=material)
 
+    return material
+
     # print(f"Color of {object_name} set to: {random_color}")
 
 def set_color_black(object_name):
+
     color = [37/255.0,31/255.0,35/255.0]
     material = cmds.shadingNode('lambert', asShader=True, name=f'{object_name}_Material')
     cmds.setAttr(material + '.color', *color, type='double3')
@@ -625,6 +620,7 @@ def set_color_black(object_name):
     cmds.select(object_name)
     cmds.hyperShade(assign=material)
 
+    return material
 
 ####################################################################
 
@@ -632,7 +628,7 @@ def get_slider_value():
     return cmds.intSliderGrp(randomSeedSlider, query=True, value=True)
 
 def Start():
-    global allObject, allGroup
+    global allObject, allGroup, materials
 
     if(activeRandomSeed==True):
         random.seed(get_slider_value())
@@ -643,8 +639,17 @@ def Start():
         for i in range(len(allGroup)):
             if(cmds.objExists(allGroup[i])):
                     cmds.delete(allGroup[i])
+
+    if(len(materials)>0):
+        for i in materials:
+            cmds.delete(i)
+    
     allObject = []
     allGroup = []
+    materials = []
+
+    print('removeMaterials', materials)
+
     print(f'start allObject{allObject} allGroup{allGroup}')
 
     bigCircle = Circle(CircleType.BIG)
@@ -664,31 +669,33 @@ def Start():
     allObject.append(check.getObjectList())  
     allGroup.append(check.getGroup())  
 
+    global sectorCnt
 
-    semiCircularCnt = random.randint(2, 4)
+    sectorCnt = random.randint(2, 4)
 
-    semiCircular1 = Sector()
-    semiCircular2 = Sector()
-    semiCircular3 = Sector()
-    semiCircular4 = Sector()
+    sector1 = Sector(1)
+    sector2 = Sector(2)
+    sector3 = Sector(3)
+    sector4 = Sector(4)
 
-    semiCircular1.activeTrue()
-    allObject.append(semiCircular1.getObjectList()) 
-    allGroup.append(semiCircular1.getGroup())
+    sector1.activeTrue()
+    allObject.append(sector1.getObjectList()) 
+    allGroup.append(sector1.getGroup())
 
-    semiCircular2.activeTrue()
-    allObject.append(semiCircular2.getObjectList()) 
-    allGroup.append(semiCircular2.getGroup()) 
+    sector2.activeTrue()
+    allObject.append(sector2.getObjectList()) 
+    allGroup.append(sector2.getGroup()) 
 
-    if(semiCircularCnt>2):
-        semiCircular3.activeTrue()
-        allObject.append(semiCircular3.getObjectList()) 
-        allGroup.append(semiCircular3.getGroup()) 
-        if(semiCircularCnt>3):
-            semiCircular4.activeTrue()
-            allObject.append(semiCircular4.getObjectList()) 
-            allGroup.append(semiCircular4.getGroup()) 
+    if(sectorCnt>2):
+        sector3.activeTrue()
+        allObject.append(sector3.getObjectList()) 
+        allGroup.append(sector3.getGroup()) 
+        if(sectorCnt>3):
+            sector4.activeTrue()
+            allObject.append(sector4.getObjectList()) 
+            allGroup.append(sector4.getGroup())
 
+    global curve3DCnt
     curve3DCnt = random.randint(1, 2)
 
     curve3D1 = Curve3D(1)
@@ -729,23 +736,184 @@ def Start():
 
     print('end ', 'allObject :', allObject, 'allGroup :', allGroup)
 
+    global horizon_cnt
+    global vertical_cnt
+
+    horizon_cnt = check.horizon_cnt
+    vertical_cnt = check.vertical_cnt
+
     for i in range(len(allGroup)):
         for j in range(len(allObject[i])):
             objectName = f'{allGroup[i]}' + "|" + f'{allObject[i][j]}'
             if(i==3 and j>=0 and j<check.horizon_cnt+check.vertical_cnt):
-                set_color_black(objectName)
-            elif(i>=4 and i<4+semiCircularCnt):
-                set_color_black(objectName)
-            elif(i>=4+semiCircularCnt and i<4+semiCircularCnt+curve3DCnt):
-                set_color_black(objectName)
+                materials.append(set_color_black(objectName))
+            elif(i>=4 and i<4+sectorCnt):
+                materials.append(set_color_black(objectName))
+            elif(i>=4+sectorCnt and i<4+sectorCnt+curve3DCnt):
+                materials.append(set_color_black(objectName))
             else:
-                set_random_color(objectName)
+                materials.append(set_random_color(objectName))
 
-##############################################################
+    print('materials: ', materials)
+
+#######################################################################
+
+def Animation():
+    global allObject, allGroup
+
+    for i in range(len(allGroup)):
+        if(i==0):
+            firstTime = 0
+            step = 7
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
+        elif(i==1):
+            firstTime = 0
+            step = 2
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
+        elif(i==2):
+            firstTime = 0
+            step = 4
+            middleStep = 7
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                firstTime += step
+        elif(i==3):
+            firstTime = 1
+            step = 2
+            middleStep = 7
+            endStep = 1
+            k=0
+
+            horizon = 2
+            cube = 4
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+                
+                if(k<vertical_cnt):
+                    cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                    cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+                    cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+
+                    cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep)
+                    cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep)
+                    cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep)
+
+                    cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                    cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                    cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep)
+
+                    firstTime += step
+                elif(k<vertical_cnt+horizon_cnt):
+                    cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime+horizon)
+                    cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime+horizon)
+                    cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime+horizon)
+
+                    cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep+horizon)
+                    cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep+horizon)
+                    cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep+horizon)
+
+                    cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep+horizon)
+                    cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep+horizon)
+                    cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep+horizon)
+
+                    firstTime += step
+                else:
+                    cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime+cube)
+                    cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime+cube)
+                    cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime+cube)
+
+                    cmds.setKeyframe(objectName, attribute='scaleX', value=1.1, time=firstTime+middleStep+cube)
+                    cmds.setKeyframe(objectName, attribute='scaleY', value=1.1, time=firstTime+middleStep+cube)
+                    cmds.setKeyframe(objectName, attribute='scaleZ', value=1.1, time=firstTime+middleStep+cube)
+
+                    cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep+cube)
+                    cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep+cube)
+                    cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep+cube)
+
+                    firstTime += step
+
+                k += 1
+        elif(4<=i<4+sectorCnt):
+            firstTime = 2 + 10*(i-4)
+            step = 1
+            middleStep = 2
+            endStep = 1
+            for j in allObject[i]:
+                objectName = f'{allGroup[i]}' + "|" + f'{j}'
+                cmds.xform(objectName, centerPivots = True)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=0, time=firstTime)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=0, time=firstTime)
+
+                cmds.setKeyframe(objectName, attribute='scaleX', value=1, time=firstTime+middleStep+endStep)
+                cmds.setKeyframe(objectName, attribute='scaleY', value=1, time=firstTime+middleStep+endStep)
+                
+                cmds.setKeyframe(objectName, attribute='scaleZ', value=1, time=firstTime+middleStep+endStep+4)
+
+
+########################################################################
 
 global allObject
 global allGroup
 global activeRandomSeed
+global materials
+allObject = []
+allGroup = []
+materials = []
+activeRandomSeed = False
 
 def toggle_slider(*args):
     # 체크박스 상태에 따라 슬라이더 활성화 또는 비활성화
@@ -775,6 +943,12 @@ randomSeedSlider = cmds.intSliderGrp(label='Random Seed', min=0, max=100, value=
 
 # 버튼 추가
 cmds.button(label="make", command="Start()")
+
+cmds.separator(height=10)
+cmds.text(label="Make Animation", align='center', font='boldLabelFont')  # 제목 스타일 텍스트
+cmds.separator(height=10)
+
+cmds.button(label="animate", command="Animation()")
 
 # UI 창 표시
 cmds.showWindow(my_window)
