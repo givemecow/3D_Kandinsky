@@ -587,6 +587,7 @@ class SemiCircleLine():
 ##################################################################
 
 def set_random_color(object_name):
+
     if random.random() < 0.2:
         # 빨간색 계열
         red_component = random.uniform(177, 203)
@@ -615,9 +616,12 @@ def set_random_color(object_name):
     cmds.select(object_name)
     cmds.hyperShade(assign=material)
 
+    return material
+
     # print(f"Color of {object_name} set to: {random_color}")
 
 def set_color_black(object_name):
+
     color = [37/255.0,31/255.0,35/255.0]
     material = cmds.shadingNode('lambert', asShader=True, name=f'{object_name}_Material')
     cmds.setAttr(material + '.color', *color, type='double3')
@@ -625,6 +629,7 @@ def set_color_black(object_name):
     cmds.select(object_name)
     cmds.hyperShade(assign=material)
 
+    return material
 
 ####################################################################
 
@@ -632,7 +637,7 @@ def get_slider_value():
     return cmds.intSliderGrp(randomSeedSlider, query=True, value=True)
 
 def Start():
-    global allObject, allGroup
+    global allObject, allGroup, materials
 
     if(activeRandomSeed==True):
         random.seed(get_slider_value())
@@ -643,8 +648,17 @@ def Start():
         for i in range(len(allGroup)):
             if(cmds.objExists(allGroup[i])):
                     cmds.delete(allGroup[i])
+
+    if(len(materials)>0):
+        for i in materials:
+            cmds.delete(i)
+    
     allObject = []
     allGroup = []
+    materials = []
+
+    print('removeMaterials', materials)
+
     print(f'start allObject{allObject} allGroup{allGroup}')
 
     bigCircle = Circle(CircleType.BIG)
@@ -733,19 +747,26 @@ def Start():
         for j in range(len(allObject[i])):
             objectName = f'{allGroup[i]}' + "|" + f'{allObject[i][j]}'
             if(i==3 and j>=0 and j<check.horizon_cnt+check.vertical_cnt):
-                set_color_black(objectName)
+                materials.append(set_color_black(objectName))
             elif(i>=4 and i<4+semiCircularCnt):
-                set_color_black(objectName)
+                materials.append(set_color_black(objectName))
             elif(i>=4+semiCircularCnt and i<4+semiCircularCnt+curve3DCnt):
-                set_color_black(objectName)
+                materials.append(set_color_black(objectName))
             else:
-                set_random_color(objectName)
+                materials.append(set_random_color(objectName))
+
+    print('materials: ', materials)
 
 ##############################################################
 
 global allObject
 global allGroup
 global activeRandomSeed
+global materials
+allObject = []
+allGroup = []
+materials = []
+activeRandomSeed = False
 
 def toggle_slider(*args):
     # 체크박스 상태에 따라 슬라이더 활성화 또는 비활성화
