@@ -756,6 +756,8 @@ def Start():
 
     print('materials: ', materials)
 
+    cmds.button(animate_button, edit=True, enable=True)
+
 #######################################################################
 
 def Animation():
@@ -1081,13 +1083,14 @@ if cmds.window("Kandinsky", exists=True):
     cmds.deleteUI("Kandinsky")
 
 # UI 창 생성
-my_window = cmds.window("Kandinsky", title="Kandinsky",w=300, h=300, sizeable=False)
+my_window = cmds.window("Kandinsky", title="Kandinsky",w=100, h=200, sizeable=False)
 
 # 레이아웃 생성
 cmds.columnLayout(adjustableColumn=True)
 cmds.separator(height=10)
 cmds.text(label="Make Modeling", align='center', font='boldLabelFont')  # 제목 스타일 텍스트
 cmds.separator(height=10)
+cmds.separator(height=5, style='none')
 
 # 랜덤 시드 사용 여부를 선택하는 체크박스
 randomSeedCheckBox = cmds.checkBox(label="Use Random Seed", value=False, changeCommand=toggle_slider)
@@ -1098,11 +1101,14 @@ randomSeedSlider = cmds.intSliderGrp(label='Random Seed', min=0, max=100, value=
 # 버튼 추가
 cmds.button(label="make", command="Start()")
 
+cmds.separator(height=15, style='none')
+
 cmds.separator(height=10)
 cmds.text(label="Make Animation", align='center', font='boldLabelFont')  # 제목 스타일 텍스트
 cmds.separator(height=10)
+cmds.separator(height=10, style='none')
 
-cmds.button(label="animate", command="Animation()")
+animate_button = cmds.button(label="Animate", command="Animation()", enable=False)
 
 # UI 창 표시
 cmds.showWindow(my_window)
