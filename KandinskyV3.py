@@ -624,14 +624,20 @@ def set_color_black(object_name):
 
 ####################################################################
 
-def get_slider_value():
-    return cmds.intSliderGrp(randomSeedSlider, query=True, value=True)
+def get_value():
+    # 텍스트 필드에서 문자열 값 가져오기
+    text_value = cmds.textFieldGrp(randomSeedTextField, query=True, text=True)
+    
+    try:
+        return float(text_value)
+    except ValueError:
+        return None
 
 def Start():
     global allObject, allGroup, materials
 
     if(activeRandomSeed==True):
-        random.seed(get_slider_value())
+        random.seed(get_value())
 
     print(f'prestart allObject{allObject} allGroup{allGroup}')
 
@@ -1071,10 +1077,10 @@ allGroup = []
 materials = []
 activeRandomSeed = False
 
-def toggle_slider(*args):
+def toggle_textfield(*args):
     # 체크박스 상태에 따라 슬라이더 활성화 또는 비활성화
     checked = cmds.checkBox(randomSeedCheckBox, query=True, value=True)
-    cmds.intSliderGrp(randomSeedSlider, edit=True, enable=checked)
+    cmds.textFieldGrp(randomSeedTextField, edit=True, enable=checked)
     global activeRandomSeed
     activeRandomSeed= checked
 
@@ -1093,10 +1099,10 @@ cmds.separator(height=10)
 cmds.separator(height=5, style='none')
 
 # 랜덤 시드 사용 여부를 선택하는 체크박스
-randomSeedCheckBox = cmds.checkBox(label="Use Random Seed", value=False, changeCommand=toggle_slider)
+randomSeedCheckBox = cmds.checkBox(label="Use Random Seed", value=False, changeCommand=toggle_textfield)
 
-# 랜덤 시드를 설정하는 슬라이더 (기본적으로 비활성화 상태)
-randomSeedSlider = cmds.intSliderGrp(label='Random Seed', min=0, max=100, value=1, step=1,f=True, enable=False)
+# 랜덤 시드를 설정하는 텍스트 필드 (기본적으로 비활성화 상태)
+randomSeedTextField = cmds.textFieldGrp(label='Random Seed', text='1', enable=False)
 
 # 버튼 추가
 cmds.button(label="make", command="Start()")
